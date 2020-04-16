@@ -16,14 +16,18 @@ Features:
 * Azure deployment (under `terraform-azure`)
 * Google Cloud Platform deployment (coming soon)
 
+Required:
+* Terraform 0.11.15
+* Packer 1.5.5
+
 ## Usage
 
 Clone this repo to work locally. You might want to fork it in case you need to apply some additional configurations or commit changes to the variables file.
 
-Create images with Packer (see `packer` folder in this repo), and then go into the terraform folder and run `terraform plan`. See README files in each respective folder. 
+Create images with Packer (see `packer` folder in this repo), and then go into the terraform folder and run `terraform plan`. See README files in each respective folder.
 
 ## tfstate
 
 Once you run `terraform apply` on any of the terraform folders in this repo, a file `terraform.tfstate` will be created. This file contains the mapping between your cloud elements to the terraform configuration. Make sure to keep this file safe.
-  
+
 See [this guide](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa#.fbb2nalw6) for a discussion on tfstate management and locking between team members.

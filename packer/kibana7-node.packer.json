@@ -47,7 +47,7 @@
       "custom_managed_image_resource_group_name":"{{user `azure_resource_group_name`}}",
 
       "location": "{{user `azure_location`}}",
-      "vm_size": "Standard_DS2_v2"
+      "vm_size": "Standard_D2S_v3"
     },
     {
       "type": "googlecompute",

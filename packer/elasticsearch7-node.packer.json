@@ -45,7 +45,7 @@
       "image_sku": "18.04-LTS",
 
       "location": "{{user `azure_location`}}",
-      "vm_size": "Standard_DS2_v2"
+      "vm_size": "Standard_D2S_v3"
     },
     {
       "type": "googlecompute",

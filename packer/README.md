@@ -68,7 +68,7 @@ Use PowerShell, and login to AzureRm. See here for more details: https://docs.mi
 
 ```Powershell
 $rgName = "packer-elasticsearch-images"
-$location = "East US"
+$location = "West US"
 New-AzureRmResourceGroup -Name $rgName -Location $location
 $Password = ([char[]]([char]33..[char]95) + ([char[]]([char]97..[char]126)) + 0..9 | sort {Get-Random})[0..8] -join ''
 "Password: " + $Password

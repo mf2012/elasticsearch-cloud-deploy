@@ -1,9 +1,9 @@
 output "es_image_id" {
-  value = "${data.azurerm_image.elasticsearch.name}"
+  value = "${data.azurerm_image.elasticsearch.id}"
 }
 
 output "kibana_image_id" {
-  value = "${data.azurerm_image.kibana.name}"
+  value = "${data.azurerm_image.kibana.id}"
 }
 
 output "clients_public_dns" {

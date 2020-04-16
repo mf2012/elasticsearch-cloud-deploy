@@ -2,30 +2,32 @@
 
 exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
-if [ "${bootstrap_node}" == "true"  ]; then
-    while true
-    do
-        echo "Fetching masters..."
-        MASTER_INSTANCES="$(aws ec2 describe-instances --region=${aws_region} --filters Name=instance-state-name,Values=running Name=tag:Role,Values=master Name=tag:Cluster,Values=${es_environment} | jq -r '.Reservations | map(.Instances[].InstanceId) | .[]' | sort)"
-        COUNT=`echo "$MASTER_INSTANCES" | wc -l`
+if [ "${cloud_provider}" == "aws" ]; then
+  if [ "${bootstrap_node}" == "true"  ]; then
+      while true
+      do
+          echo "Fetching masters..."
+          MASTER_INSTANCES="$(aws ec2 describe-instances --region=${aws_region} --filters Name=instance-state-name,Values=running Name=tag:Role,Values=master Name=tag:Cluster,Values=${es_environment} | jq -r '.Reservations | map(.Instances[].InstanceId) | .[]' | sort)"
+          COUNT=`echo "$MASTER_INSTANCES" | wc -l`
 
-        if [ "$COUNT" -eq "${masters_count}" ]; then
-            echo "Masters count is correct... Rechecking in 60 sec"
-            sleep 60
-            MASTER_INSTANCES_RECHECK="$(aws ec2 describe-instances --region=${aws_region} --filters Name=instance-state-name,Values=running Name=tag:Role,Values=master Name=tag:Cluster,Values=${es_environment} | jq -r '.Reservations | map(.Instances[].InstanceId) | .[]' | sort)"
-        
-            if [ "$MASTER_INSTANCES" = "$MASTER_INSTANCES_RECHECK" ]; then
-                break
-            fi
-        fi
-    
-        sleep 5
-    done
+          if [ "$COUNT" -eq "${masters_count}" ]; then
+              echo "Masters count is correct... Rechecking in 60 sec"
+              sleep 60
+              MASTER_INSTANCES_RECHECK="$(aws ec2 describe-instances --region=${aws_region} --filters Name=instance-state-name,Values=running Name=tag:Role,Values=master Name=tag:Cluster,Values=${es_environment} | jq -r '.Reservations | map(.Instances[].InstanceId) | .[]' | sort)"
 
-    echo "Fetched masters"
-    MASTER_IPS="$(aws ec2 describe-instances --region ${aws_region} --instance-ids $MASTER_INSTANCES | jq -r '.Reservations[].Instances[].PrivateIpAddress')"
-    SEED_HOSTS=`echo "$MASTER_IPS" | paste -sd ',' -`
-    INITIAL_MASTER_NODES=`echo "$MASTER_IPS" | awk '{print "ip-" $0}' | tr . - | paste -sd ',' -`
+              if [ "$MASTER_INSTANCES" = "$MASTER_INSTANCES_RECHECK" ]; then
+                  break
+              fi
+          fi
+
+          sleep 5
+      done
+
+      echo "Fetched masters"
+      MASTER_IPS="$(aws ec2 describe-instances --region ${aws_region} --instance-ids $MASTER_INSTANCES | jq -r '.Reservations[].Instances[].PrivateIpAddress')"
+      SEED_HOSTS=`echo "$MASTER_IPS" | paste -sd ',' -`
+      INITIAL_MASTER_NODES=`echo "$MASTER_IPS" | awk '{print "ip-" $0}' | tr . - | paste -sd ',' -`
+  fi
 fi
 
 # Configure elasticsearch
@@ -132,7 +134,7 @@ sudo chown -R elasticsearch:elasticsearch ${elasticsearch_logs_dir}
 # we are assuming volume is declared and attached when data_dir is passed to the script
 if { [ "${master}" == "true" ] || [ "${data}" == "true" ]; } && [ "${bootstrap_node}" != "true" ]; then
     sudo mkdir -p ${elasticsearch_data_dir}
-    
+
     export DEVICE_NAME=$(lsblk -ip | tail -n +2 | awk '{print $1 " " ($7? "MOUNTEDPART" : "") }' | sed ':a;N;$!ba;s/\n`/ /g' | grep -v MOUNTEDPART)
     if sudo mount -o defaults -t ext4 $DEVICE_NAME ${elasticsearch_data_dir}; then
         echo 'Successfully mounted existing disk'
